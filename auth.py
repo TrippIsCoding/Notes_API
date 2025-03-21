@@ -25,7 +25,7 @@ def verify_token(token: str):
     except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail='Token has expired')
     except JWTError:
-        raise HTTPException(status_code=401, detail='Unauthorzed')
+        raise HTTPException(status_code=401, detail='Unauthorized')
 
 auth_router = APIRouter()
 
@@ -43,6 +43,7 @@ async def user_create(user: UserCreate, db: Session = Depends(get_db)):
         db.commit()
     except IntegrityError:
         raise HTTPException(status_code=409, detail='Username or Email already being used')
+    
     return {'User': user}
 
 @auth_router.post('/token')
@@ -51,12 +52,17 @@ async def authorize_user(user: OAuth2PasswordRequestForm = Depends(), db: Sessio
         raise HTTPException(status_code=401, detail='Incorrect Username')
     if not verify_password(user.password, db.query(User).filter(User.username == user.username).first().hashed_password):
         raise HTTPException(status_code=401, detail='Incorrect Password')
+    
     payload = {'sub': user.username, 'exp': datetime.now(timezone.utc) + timedelta(minutes=30)}
+
     token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
     return {'token': token}
 
 @auth_router.get('/ShowUsers')
 async def list_users(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     verify_token(token)
+
     users = db.query(User).order_by(User.id).all()
+
     return {'Users': users}
