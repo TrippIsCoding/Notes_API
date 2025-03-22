@@ -8,4 +8,4 @@ Simple backend API for user notes, built with FastAPI, JWT auth, and SQLAlchemy 
 
 ## Run It
 - Install: `pip install -r requirements.txt`
-- Run: `uvicorn app:app --reload`
+- Run: `uvicorn main:app --reload`
