@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from jose import jwt, JWTError, ExpiredSignatureError
 from config import SECRET_KEY, ALGORITHM
-from models import User, UserCreate
+from models import User, UserModel
 from database import get_db
 
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
@@ -30,7 +30,7 @@ def verify_token(token: str):
 auth_router = APIRouter()
 
 @auth_router.post('/CreateAccount')
-async def user_create(user: UserCreate, db: Session = Depends(get_db)):   
+async def user_create(user: UserModel, db: Session = Depends(get_db)):   
     try:
         new_user = User(
             username=user.username,
@@ -48,9 +48,9 @@ async def user_create(user: UserCreate, db: Session = Depends(get_db)):
 
 @auth_router.post('/token')
 async def authorize_user(user: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    if not db.query(User).filter(User.username == user.username).first():
+    if not db.query(UserModel).filter(UserModel.username == user.username).first():
         raise HTTPException(status_code=401, detail='Incorrect Username')
-    if not verify_password(user.password, db.query(User).filter(User.username == user.username).first().hashed_password):
+    if not verify_password(user.password, db.query(UserModel).filter(UserModel.username == user.username).first().hashed_password):
         raise HTTPException(status_code=401, detail='Incorrect Password')
     
     payload = {'sub': user.username, 'exp': datetime.now(timezone.utc) + timedelta(minutes=30)}
