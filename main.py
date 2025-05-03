@@ -10,11 +10,6 @@ Base.metadata.create_all(bind=engine)
 
 app.include_router(auth_router, prefix='/auth', tags=['auth'])
 
-@app.get('/helloworld')
-def hello(token: str = Depends(oauth2_scheme)):
-    verify_token(token)
-    return {'Hello': 'World!'}
-
 @app.get('/user/messages')
 async def show_all_user_messages(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     token = verify_token(token=token)
